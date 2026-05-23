@@ -1,0 +1,151 @@
+basePath: /api/v1
+definitions:
+  dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    type: object
+  responseswagger.BadRequestResponse:
+    properties:
+      message:
+        example: format json tidak valid
+        type: string
+    type: object
+  responseswagger.ConflictResponse:
+    properties:
+      message:
+        example: data sudah terdaftar
+        type: string
+    type: object
+  responseswagger.InternalServerErrorResponse:
+    properties:
+      message:
+        example: internal server error
+        type: string
+    type: object
+  responseswagger.RegisterSuccessResponse:
+    properties:
+      message:
+        example: pendaftaran berhasil
+        type: string
+    type: object
+  responseswagger.ValidationFailedResponse:
+    properties:
+      errors:
+        properties:
+          email:
+            example:
+            - format email salah
+            items:
+              type: string
+            type: array
+          full_name:
+            example:
+            - nama tidak valid
+            items:
+              type: string
+            type: array
+          password:
+            example:
+            - minimal 6 karakter
+            items:
+              type: string
+            type: array
+        type: object
+      message:
+        example: validasi gagal
+        type: string
+    type: object
+  responseswagger.VerifyEmailSuccessResponse:
+    properties:
+      message:
+        example: verifikasi akun berhasil
+        type: string
+    type: object
+info:
+  contact:
+    email: ekokurniawaann@gmail.com
+    name: Eko Kurniawan
+  description: Dokumentasi API untuk Aplikasi FORTISFIT
+  termsOfService: http://swagger.io/terms/
+  title: Backend Skripsi API
+  version: "1.0"
+paths:
+  /auth/register:
+    post:
+      description: Registrasi akun pengguna baru ke sistem FortisFit.
+      parameters:
+      - description: body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/responseswagger.RegisterSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responseswagger.BadRequestResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/responseswagger.ConflictResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responseswagger.ValidationFailedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
+      summary: Register Akun Baru
+      tags:
+      - Auth
+  /auth/verify:
+    get:
+      description: Memvalidasi token dari email untuk mengubah status is_verified
+        menjadi true.
+      parameters:
+      - description: Email Pengguna
+        in: query
+        name: email
+        required: true
+        type: string
+      - description: Token Verifikasi Kriptografis
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responseswagger.VerifyEmailSuccessResponse'
+        "400":
+          description: Token atau email tidak valid
+          schema:
+            $ref: '#/definitions/responseswagger.BadRequestResponse'
+        "422":
+          description: Gagal lolos validasi format
+          schema:
+            $ref: '#/definitions/responseswagger.ValidationFailedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
+      summary: Verify User Email
+      tags:
+      - Auth
+swagger: "2.0"

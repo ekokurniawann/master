@@ -1,0 +1,61 @@
+app:
+  name: "backend-skripsi"
+  version: "0.0.1"
+  env: "development"
+  debug: false
+  base_url: "${APP_BASE_URL}"
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: 5s
+  write_timeout: 10s
+  idle_timeout: 60s
+  shutdown_timeout: 15s
+  max_header_bytes: 1048576
+
+database:
+  dsn: "${DATABASE_URL}"
+  max_open_conns: 25
+  max_idle_conns: 25
+  conn_max_lifetime: 5m
+  conn_max_idle_time: 2m
+
+redis:
+  url: "${REDIS_URL}"
+  pool_size: 10
+  min_idle_conns: 5
+
+http:
+  request_timeout: 60s
+  rate_limit:
+    limit: 100
+    window: 1m
+  compression_level: 5
+  cors:
+    allowed_origins:
+      - "*"
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed_headers:
+      - Authorization
+      - Content-Type
+      - Accept
+    allow_credentials: true
+    max_age: 300
+
+health:
+  path: "/health"
+
+mailer:
+  host: "smtp-relay.brevo.com"
+  port: 587
+  username: "${SMTP_USERNAME}"
+  password: "${SMTP_PASSWORD}"
+  sender_email: "${SMTP_SENDER_EMAIL}"
+  sender_name: "FortisFit Team"
