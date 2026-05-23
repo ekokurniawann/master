@@ -47,3 +47,24 @@ func (r *UserRepository) UpdateVerificationStatus(ctx context.Context, email str
 
 	return nil
 }
+
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
+	var user entity.User
+
+	// Eager Loading
+	err := r.db.WithContext(ctx).
+		Preload("Role").
+		Where("email = ?", email).
+		First(&user).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("repository.user.FindByEmail: %w", entity.ErrUserNotFound)
+		}
+
+		return nil, fmt.Errorf("repository.user.FindByEmail: %w", err)
+	}
+
+	return &user, nil
+}

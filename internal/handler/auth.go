@@ -94,3 +94,49 @@ func (h *AuthHandler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 
 	WriteOK(w, "verifikasi akun berhasil, silakan login melalui aplikasi", nil)
 }
+
+// Login menangani autentikasi pengguna dan mengembalikan token JWT
+// @Summary      Login Pengguna
+// @Description  Autentikasi email dan password pengguna untuk mendapatkan token akses JWT.
+// @Tags         Auth
+// @Param        request  body      dto.LoginRequest  true  "Kredensial Login"
+// @Success      200      {object}  responseswagger.LoginSuccessResponse
+// @Failure      400      {object}  responseswagger.BadRequestResponse
+// @Failure      422      {object}  responseswagger.ValidationFailedResponse
+// @Failure      500      {object}  responseswagger.InternalServerErrorResponse
+// @Router       /auth/login [post]
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var req dto.LoginRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		WriteBadRequest(w, "format json tidak valid")
+		return
+	}
+
+	if errs := validator.ValidateStruct(req); errs != nil {
+		WriteValidationFailed(w, "validasi gagal", errs)
+		return
+	}
+
+	token, err := h.authService.Login(r.Context(), req)
+	if err != nil {
+		if errors.Is(err, entity.ErrInvalidCredentials) {
+			WriteBadRequest(w, entity.ErrInvalidCredentials.Error())
+			return
+		}
+
+		if errors.Is(err, entity.ErrUserNotVerified) {
+			WriteBadRequest(w, entity.ErrUserNotVerified.Error())
+			return
+		}
+
+		WriteInternalServerError(w)
+		return
+	}
+
+	responsePayload := dto.LoginResponse{
+		Token: token,
+	}
+
+	WriteOK(w, "login berhasil", responsePayload)
+}

@@ -1,5 +1,20 @@
 basePath: /api/v1
 definitions:
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
   dto.RegisterRequest:
     properties:
       email:
@@ -29,6 +44,14 @@ definitions:
     properties:
       message:
         example: internal server error
+        type: string
+    type: object
+  responseswagger.LoginSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.LoginResponse'
+      message:
+        example: login berhasil
         type: string
     type: object
   responseswagger.RegisterSuccessResponse:
@@ -79,6 +102,37 @@ info:
   title: Backend Skripsi API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      description: Autentikasi email dan password pengguna untuk mendapatkan token
+        akses JWT.
+      parameters:
+      - description: Kredensial Login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responseswagger.LoginSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responseswagger.BadRequestResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responseswagger.ValidationFailedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
+      summary: Login Pengguna
+      tags:
+      - Auth
   /auth/register:
     post:
       description: Registrasi akun pengguna baru ke sistem FortisFit.

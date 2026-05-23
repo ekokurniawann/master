@@ -37,6 +37,7 @@ func (srv *Server) routes() http.Handler {
 		v1.Group(func(auth chi.Router) {
 			auth.Post("/auth/register", srv.handlers.auth.Register)
 			auth.Get("/auth/verify", srv.handlers.auth.VerifyEmail)
+			auth.Post("/auth/login", srv.handlers.auth.Login)
 		})
 	})
 

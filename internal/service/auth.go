@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -12,26 +13,56 @@ import (
 	"backend-skripsi/internal/handler/dto"
 	"backend-skripsi/internal/mailer"
 	"backend-skripsi/internal/repository"
+	"backend-skripsi/internal/security"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
-	userRepo   *repository.UserRepository
-	cacheRepo  repository.CacheRepository
-	mailClient mailer.Mailer
+	userRepo    *repository.UserRepository
+	cacheRepo   repository.CacheRepository
+	mailClient  mailer.Mailer
+	jwtProvider *security.JWTProvider
 }
 
 func NewAuthService(
 	userRepo *repository.UserRepository,
 	cacheRepo repository.CacheRepository,
 	mailClient mailer.Mailer,
+	jwtProvider *security.JWTProvider,
 ) *AuthService {
 	return &AuthService{
-		userRepo:   userRepo,
-		cacheRepo:  cacheRepo,
-		mailClient: mailClient,
+		userRepo:    userRepo,
+		cacheRepo:   cacheRepo,
+		mailClient:  mailClient,
+		jwtProvider: jwtProvider,
 	}
+}
+
+func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (string, error) {
+	user, err := s.userRepo.FindByEmail(ctx, req.Email)
+	if err != nil {
+		if errors.Is(err, entity.ErrUserNotFound) {
+			return "", fmt.Errorf("service.auth.Login: %w", entity.ErrInvalidCredentials)
+		}
+		return "", fmt.Errorf("service.auth.Login: %w", err)
+	}
+
+	if user.IsVerified == entity.UserUnverified {
+		return "", fmt.Errorf("service.auth.Login: %w", entity.ErrUserNotVerified)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		return "", fmt.Errorf("service.auth.Login: %w", entity.ErrInvalidCredentials)
+	}
+
+	token, err := s.jwtProvider.GenerateToken(user.ID, user.Email, user.Role.Name)
+	if err != nil {
+		return "", fmt.Errorf("service.auth.Login: %w", err)
+	}
+
+	return token, nil
 }
 
 func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) error {

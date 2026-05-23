@@ -4,6 +4,7 @@ import (
 	"backend-skripsi/internal/handler"
 	"backend-skripsi/internal/mailer"
 	"backend-skripsi/internal/repository"
+	"backend-skripsi/internal/security"
 	"backend-skripsi/internal/service"
 )
 
@@ -17,7 +18,9 @@ func (s *Server) initDependencies() *handlers {
 
 	mailClient := mailer.NewSMTPMailer()
 
-	authService := service.NewAuthService(userRepo, cacheRepo, mailClient)
+	jwtProvider := security.NewJWTProvider()
+
+	authService := service.NewAuthService(userRepo, cacheRepo, mailClient, jwtProvider)
 	authHdl := handler.NewAuthHandler(authService)
 
 	return &handlers{

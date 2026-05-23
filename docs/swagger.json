@@ -12,6 +12,52 @@
     },
     "basePath": "/api/v1",
     "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Autentikasi email dan password pengguna untuk mendapatkan token akses JWT.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login Pengguna",
+                "parameters": [
+                    {
+                        "description": "Kredensial Login",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.LoginSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.BadRequestResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.ValidationFailedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.InternalServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "Registrasi akun pengguna baru ke sistem FortisFit.",
@@ -117,6 +163,29 @@
         }
     },
     "definitions": {
+        "dto.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.RegisterRequest": {
             "type": "object",
             "required": [
@@ -160,6 +229,18 @@
                 "message": {
                     "type": "string",
                     "example": "internal server error"
+                }
+            }
+        },
+        "responseswagger.LoginSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.LoginResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "login berhasil"
                 }
             }
         },

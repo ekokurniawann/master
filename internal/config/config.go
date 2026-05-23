@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	App      AppConfig      `yaml:"app"`
+	JWT      JWTConfig      `yaml:"jwt"`
 	Server   ServerConfig   `yaml:"server"`
 	Database DatabaseConfig `yaml:"database"`
 	Redis    RedisConfig    `yaml:"redis"`
@@ -25,6 +26,12 @@ type AppConfig struct {
 	Env     string `yaml:"env"`
 	Debug   bool   `yaml:"debug"`
 	BaseURL string `yaml:"base_url"`
+}
+
+type JWTConfig struct {
+	Secret   string `yaml:"secret"`
+	Issuer   string `yaml:"issuer"`
+	Audience string `yaml:"audience"`
 }
 
 type ServerConfig struct {
