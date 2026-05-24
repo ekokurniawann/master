@@ -6,12 +6,12 @@ import (
 
 	_ "backend-skripsi/docs"
 	"backend-skripsi/internal/config"
+	"backend-skripsi/internal/handler/middleware"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httplog/v3"
-	"github.com/go-chi/httprate"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
@@ -33,11 +33,19 @@ func (srv *Server) routes() http.Handler {
 	))
 
 	r.Route("/api/v1", func(v1 chi.Router) {
-
 		v1.Group(func(auth chi.Router) {
 			auth.Post("/auth/register", srv.handlers.auth.Register)
 			auth.Get("/auth/verify", srv.handlers.auth.VerifyEmail)
 			auth.Post("/auth/login", srv.handlers.auth.Login)
+			auth.Post("/auth/forgot-password", srv.handlers.auth.ForgotPassword)
+			auth.Get("/auth/reset-password", srv.handlers.auth.ResetPasswordView)
+			auth.Post("/auth/reset-password", srv.handlers.auth.ResetPassword)
+		})
+
+		v1.Group(func(protected chi.Router) {
+			protected.Use(middleware.JWTMiddleware(srv.jwtProvider, srv.cacheRepo))
+			protected.Get("/auth/me", srv.handlers.auth.GetProfileMe)
+			protected.Post("/auth/logout", srv.handlers.auth.Logout)
 		})
 	})
 
@@ -47,8 +55,11 @@ func (srv *Server) routes() http.Handler {
 func (srv *Server) middlewares(r *chi.Mux) {
 	cfg := config.Get()
 
-	r.Use(middleware.RealIP)
-	r.Use(middleware.CleanPath)
+	r.Use(chimiddleware.RealIP)
+
+	r.Use(middleware.ExtractClientInfo)
+
+	r.Use(chimiddleware.CleanPath)
 
 	r.Use(httplog.RequestLogger(srv.logger, &httplog.Options{
 		Level:         slog.LevelInfo,
@@ -59,12 +70,9 @@ func (srv *Server) middlewares(r *chi.Mux) {
 		},
 	}))
 
-	r.Use(middleware.Heartbeat(cfg.Health.Path))
+	r.Use(chimiddleware.Heartbeat(cfg.Health.Path))
 
-	r.Use(httprate.LimitByIP(
-		cfg.HTTP.RateLimit.Limit,
-		cfg.HTTP.RateLimit.Window,
-	))
+	r.Use(middleware.RedisRateLimiter(srv.cacheRepo))
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   cfg.HTTP.CORS.AllowedOrigins,
@@ -74,9 +82,9 @@ func (srv *Server) middlewares(r *chi.Mux) {
 		MaxAge:           cfg.HTTP.CORS.MaxAge,
 	}))
 
-	r.Use(middleware.Timeout(cfg.HTTP.RequestTimeout))
+	r.Use(chimiddleware.Timeout(cfg.HTTP.RequestTimeout))
 
-	r.Use(middleware.Compress(
+	r.Use(chimiddleware.Compress(
 		cfg.HTTP.CompressionLevel,
 		"application/json",
 	))

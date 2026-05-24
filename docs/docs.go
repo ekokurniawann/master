@@ -19,6 +19,52 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/forgot-password": {
+            "post": {
+                "description": "Mengirimkan tautan kriptografis berdurasi 15 menit ke kotak masuk email jika email terdaftar.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Minta Link Lupa Password",
+                "parameters": [
+                    {
+                        "description": "Payload Email Pemulihan",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ForgotPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.ForgotPasswordSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.BadRequestResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.ValidationFailedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.InternalServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Autentikasi email dan password pengguna untuk mendapatkan token akses JWT.",
@@ -65,6 +111,74 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Memasukkan token JWT yang sedang digunakan ke dalam daftar hitam Redis agar tidak bisa digunakan kembali sebelum masa kedaluwarsanya habis.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout Pengguna",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.LogoutSuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.BadRequestResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.InternalServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil data profil pengguna yang sedang login berdasarkan token JWT yang dikirim di Header Authorization.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Ambil Profil Pengguna (Me)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.UserMeSuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.BadRequestResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.InternalServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "Registrasi akun pengguna baru ke sistem FortisFit.",
@@ -100,6 +214,52 @@ const docTemplate = `{
                         "description": "Conflict",
                         "schema": {
                             "$ref": "#/definitions/responseswagger.ConflictResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.ValidationFailedResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.InternalServerErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "description": "Mengubah kata sandi lama menjadi kata sandi baru jika token email valid dan belum kedaluwarsa.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Eksekusi Reset Password Baru",
+                "parameters": [
+                    {
+                        "description": "Payload Password Baru dan Token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.ResetPasswordSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/responseswagger.BadRequestResponse"
                         }
                     },
                     "422": {
@@ -170,6 +330,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.ForgotPasswordRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -212,6 +383,55 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "confirm_password",
+                "email",
+                "new_password",
+                "token"
+            ],
+            "properties": {
+                "confirm_password": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "new_password": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserMeResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "postal_code": {
+                    "type": "string"
+                },
+                "province": {
+                    "type": "string"
+                }
+            }
+        },
         "responseswagger.BadRequestResponse": {
             "type": "object",
             "properties": {
@@ -227,6 +447,15 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "data sudah terdaftar"
+                }
+            }
+        },
+        "responseswagger.ForgotPasswordSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "tautan pemulihan kata sandi telah dikirim ke email"
                 }
             }
         },
@@ -251,12 +480,42 @@ const docTemplate = `{
                 }
             }
         },
+        "responseswagger.LogoutSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "logout berhasil, sesi telah dihapus"
+                }
+            }
+        },
         "responseswagger.RegisterSuccessResponse": {
             "type": "object",
             "properties": {
                 "message": {
                     "type": "string",
                     "example": "pendaftaran berhasil"
+                }
+            }
+        },
+        "responseswagger.ResetPasswordSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "kata sandi berhasil diperbarui, silakan login kembali"
+                }
+            }
+        },
+        "responseswagger.UserMeSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.UserMeResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "data profil berhasil diambil"
                 }
             }
         },
@@ -309,6 +568,13 @@ const docTemplate = `{
                     "example": "verifikasi akun berhasil"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

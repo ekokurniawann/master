@@ -14,13 +14,15 @@ type handlers struct {
 
 func (s *Server) initDependencies() *handlers {
 	userRepo := repository.NewUserRepository(s.db)
-	cacheRepo := repository.NewCacheRepository(s.rdb)
+	authLogRepo := repository.NewAuthLogRepository(s.db)
+
+	s.cacheRepo = repository.NewCacheRepository(s.rdb)
 
 	mailClient := mailer.NewSMTPMailer()
 
-	jwtProvider := security.NewJWTProvider()
+	s.jwtProvider = security.NewJWTProvider()
 
-	authService := service.NewAuthService(userRepo, cacheRepo, mailClient, jwtProvider)
+	authService := service.NewAuthService(userRepo, s.cacheRepo, authLogRepo, mailClient, s.jwtProvider)
 	authHdl := handler.NewAuthHandler(authService)
 
 	return &handlers{

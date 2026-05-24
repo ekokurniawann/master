@@ -1,0 +1,35 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}} - FortisFit</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lightbg: '#FFFFFF',       
+                        cardlight: '#F9FAFB',     
+                        fortisCyan: '#008B8B',     
+                        fortisCyanHover: '#006666' 
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-lightbg text-gray-800 min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 select-none">
+    
+    <div class="bg-cardlight border border-gray-200 focus-within:border-fortisCyan/50 p-6 sm:p-8 rounded-xl shadow-xl w-full max-w-md transition-all duration-300">
+        
+        {{template "content" .}}
+        
+    </div>
+
+</body>
+</html>
+{{end}}

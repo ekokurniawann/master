@@ -1,0 +1,120 @@
+{{define "content"}}
+<h2 class="text-fortisCyan text-center text-2xl sm:text-3xl font-bold tracking-tight mb-1">
+    Atur Ulang Kata Sandi
+</h2>
+<p class="text-gray-500 text-xs sm:text-sm text-center mb-6 px-2">
+    Masukkan kata sandi baru untuk akun Anda
+</p>
+
+<form id="resetForm" class="space-y-4 sm:space-y-5">
+    <input type="hidden" id="email" value="{{.Email}}">
+    <input type="hidden" id="token" value="{{.Token}}">
+    
+    <div class="space-y-1.5">
+        <label for="new_password" class="block text-xs sm:text-sm font-medium text-gray-600">
+            Password Baru
+        </label>
+        <div class="relative flex items-center">
+            <input type="password" id="new_password" required 
+                   placeholder="Minimal 6 karakter & 1 huruf besar" 
+                   class="w-full p-3 pr-10 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm sm:text-base placeholder-gray-400 focus:border-fortisCyan focus:ring-1 focus:ring-fortisCyan/30 focus:outline-none transition-all duration-200">
+            <button type="button" onclick="togglePassword('new_password', 'eye_icon_new')" class="absolute right-3 text-gray-400 hover:text-fortisCyan focus:outline-none">
+                <svg id="eye_icon_new" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 transition-colors duration-200">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <div class="space-y-1.5">
+        <label for="confirm_password" class="block text-xs sm:text-sm font-medium text-gray-600">
+            Konfirmasi Password
+        </label>
+        <div class="relative flex items-center">
+            <input type="password" id="confirm_password" required 
+                   placeholder="Ulangi password baru Anda" 
+                   class="w-full p-3 pr-10 bg-white border border-gray-300 rounded-lg text-gray-800 text-sm sm:text-base placeholder-gray-400 focus:border-fortisCyan focus:ring-1 focus:ring-fortisCyan/30 focus:outline-none transition-all duration-200">
+            <button type="button" onclick="togglePassword('confirm_password', 'eye_icon_confirm')" class="absolute right-3 text-gray-400 hover:text-fortisCyan focus:outline-none">
+                <svg id="eye_icon_confirm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 transition-colors duration-200">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <button type="submit" 
+            class="w-full p-3 sm:p-3.5 bg-fortisCyan hover:bg-fortisCyanHover text-white font-bold rounded-lg text-sm sm:text-base tracking-wide transition-colors duration-200 mt-2 shadow-md shadow-fortisCyan/20 focus:ring-2 focus:ring-fortisCyan/40 focus:outline-none">
+        Simpan Kata Sandi
+    </button>
+</form>
+
+<div id="msgBox" class="text-center mt-5 text-xs sm:text-sm font-semibold min-h-[20px] transition-all duration-200"></div>
+
+<script>
+    function togglePassword(inputId, iconId) {
+        const passwordInput = document.getElementById(inputId);
+        const eyeIcon = document.getElementById(iconId);
+        
+        const eyeSlashPath = `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 17.772 17.772M15.201 15.201a3 3 0 1 1-4.242-4.242" />`;
+        const eyeOpenPath = `<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />`;
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            eyeIcon.innerHTML = eyeSlashPath;
+            eyeIcon.classList.add("text-fortisCyan");
+        } else {
+            passwordInput.type = "password";
+            eyeIcon.innerHTML = eyeOpenPath;
+            eyeIcon.classList.remove("text-fortisCyan");
+        }
+    }
+
+    document.getElementById('resetForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const msgBox = document.getElementById('msgBox');
+        
+        msgBox.className = "text-center mt-5 text-xs sm:text-sm font-semibold text-gray-500 animate-pulse";
+        msgBox.innerText = "Memproses...";
+
+        const email = document.getElementById('email').value;
+        const token = document.getElementById('token').value;
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        if (newPassword !== confirmPassword) {
+            msgBox.className = "text-center mt-5 text-xs sm:text-sm font-semibold text-red-600";
+            msgBox.innerText = "Password tidak cocok.";
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/v1/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    token: token,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                msgBox.className = "text-center mt-5 text-xs sm:text-sm font-semibold text-green-600 px-2";
+                msgBox.innerText = "Password berhasil diperbarui. Silakan buka aplikasi FortisFit.";
+                document.getElementById('resetForm').reset();
+            } else {
+                msgBox.className = "text-center mt-5 text-xs sm:text-sm font-semibold text-red-600 px-2";
+                msgBox.innerText = result.message || "Gagal memperbarui password.";
+            }
+        } catch (err) {
+            msgBox.className = "text-center mt-5 text-xs sm:text-sm font-semibold text-red-600";
+            msgBox.innerText = "Gangguan koneksi sistem.";
+        }
+    });
+</script>
+{{end}}

@@ -13,11 +13,12 @@ import (
 // @version         1.0
 // @description     Dokumentasi API untuk Aplikasi FORTISFIT
 // @termsOfService  http://swagger.io/terms/
-
 // @contact.name   Eko Kurniawan
 // @contact.email  ekokurniawaann@gmail.com
-
 // @BasePath        /api/v1
+// @securityDefinitions.apikey  BearerAuth
+// @in                          header
+// @name                        Authorization
 func main() {
 	res, cleanup, err := app.Bootstrap()
 	if err != nil {

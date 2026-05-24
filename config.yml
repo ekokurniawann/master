@@ -34,8 +34,8 @@ redis:
 http:
   request_timeout: 60s
   rate_limit:
-    limit: 100
-    window: 1m
+    limit: 10
+    window: 60s
   compression_level: 5
   cors:
     allowed_origins:
@@ -51,6 +51,11 @@ http:
       - Authorization
       - Content-Type
       - Accept
+      - X-Requested-With
+      - Origin
+      - X-Forwarded-For
+      - X-Real-IP
+      - User-Agent
     allow_credentials: true
     max_age: 300
 

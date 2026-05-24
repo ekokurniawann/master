@@ -1,10 +1,12 @@
 package security
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"backend-skripsi/internal/config"
+	"backend-skripsi/internal/entity"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -62,18 +64,21 @@ func (j *JWTProvider) GenerateToken(userID uuid.UUID, email, roleName string) (s
 func (j *JWTProvider) ValidateToken(tokenStr string) (*JWTClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &JWTClaims{}, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("security.jwt.ValidateToken: unexpected signing method: %v", t.Header["alg"])
+			return nil, fmt.Errorf("security.jwt.ValidateToken: %w (got: %v)", entity.ErrTokenUnexpectedMethod, t.Header["alg"])
 		}
 		return j.secretKey, nil
 	}, jwt.WithIssuer(j.issuer), jwt.WithAudience(j.audience))
 
 	if err != nil {
-		return nil, fmt.Errorf("security.jwt.ValidateToken: %w", err)
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, fmt.Errorf("security.jwt.ValidateToken: %w", entity.ErrTokenExpired)
+		}
+		return nil, fmt.Errorf("security.jwt.ValidateToken: %w", entity.ErrTokenInvalid)
 	}
 
 	claims, ok := token.Claims.(*JWTClaims)
 	if !ok || !token.Valid {
-		return nil, fmt.Errorf("security.jwt.ValidateToken: token is invalid or claims mismatch")
+		return nil, fmt.Errorf("security.jwt.ValidateToken: %w", entity.ErrTokenInvalid)
 	}
 
 	return claims, nil

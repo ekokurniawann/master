@@ -7,4 +7,5 @@ var validationMessages = map[string]string{
 	"secure_password": "Password minimal 6 karakter dan mengandung 1 huruf besar",
 	"hexadecimal":     "Tautan verifikasi tidak valid",
 	"len":             "Tautan verifikasi tidak valid",
+	"eqfield":         "Konfirmasi password tidak cocok dengan password baru",
 }

@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  dto.ForgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -28,6 +35,39 @@ definitions:
     - full_name
     - password
     type: object
+  dto.ResetPasswordRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      new_password:
+        type: string
+      token:
+        type: string
+    required:
+    - confirm_password
+    - email
+    - new_password
+    - token
+    type: object
+  dto.UserMeResponse:
+    properties:
+      address:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      phone_number:
+        type: string
+      postal_code:
+        type: string
+      province:
+        type: string
+    type: object
   responseswagger.BadRequestResponse:
     properties:
       message:
@@ -38,6 +78,12 @@ definitions:
     properties:
       message:
         example: data sudah terdaftar
+        type: string
+    type: object
+  responseswagger.ForgotPasswordSuccessResponse:
+    properties:
+      message:
+        example: tautan pemulihan kata sandi telah dikirim ke email
         type: string
     type: object
   responseswagger.InternalServerErrorResponse:
@@ -54,10 +100,30 @@ definitions:
         example: login berhasil
         type: string
     type: object
+  responseswagger.LogoutSuccessResponse:
+    properties:
+      message:
+        example: logout berhasil, sesi telah dihapus
+        type: string
+    type: object
   responseswagger.RegisterSuccessResponse:
     properties:
       message:
         example: pendaftaran berhasil
+        type: string
+    type: object
+  responseswagger.ResetPasswordSuccessResponse:
+    properties:
+      message:
+        example: kata sandi berhasil diperbarui, silakan login kembali
+        type: string
+    type: object
+  responseswagger.UserMeSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.UserMeResponse'
+      message:
+        example: data profil berhasil diambil
         type: string
     type: object
   responseswagger.ValidationFailedResponse:
@@ -102,6 +168,37 @@ info:
   title: Backend Skripsi API
   version: "1.0"
 paths:
+  /auth/forgot-password:
+    post:
+      description: Mengirimkan tautan kriptografis berdurasi 15 menit ke kotak masuk
+        email jika email terdaftar.
+      parameters:
+      - description: Payload Email Pemulihan
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ForgotPasswordRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responseswagger.ForgotPasswordSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responseswagger.BadRequestResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responseswagger.ValidationFailedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
+      summary: Minta Link Lupa Password
+      tags:
+      - Auth
   /auth/login:
     post:
       description: Autentikasi email dan password pengguna untuk mendapatkan token
@@ -131,6 +228,50 @@ paths:
           schema:
             $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
       summary: Login Pengguna
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      description: Memasukkan token JWT yang sedang digunakan ke dalam daftar hitam
+        Redis agar tidak bisa digunakan kembali sebelum masa kedaluwarsanya habis.
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responseswagger.LogoutSuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responseswagger.BadRequestResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout Pengguna
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      description: Mengambil data profil pengguna yang sedang login berdasarkan token
+        JWT yang dikirim di Header Authorization.
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responseswagger.UserMeSuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/responseswagger.BadRequestResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Ambil Profil Pengguna (Me)
       tags:
       - Auth
   /auth/register:
@@ -165,6 +306,37 @@ paths:
           schema:
             $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
       summary: Register Akun Baru
+      tags:
+      - Auth
+  /auth/reset-password:
+    post:
+      description: Mengubah kata sandi lama menjadi kata sandi baru jika token email
+        valid dan belum kedaluwarsa.
+      parameters:
+      - description: Payload Password Baru dan Token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/responseswagger.ResetPasswordSuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/responseswagger.BadRequestResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/responseswagger.ValidationFailedResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/responseswagger.InternalServerErrorResponse'
+      summary: Eksekusi Reset Password Baru
       tags:
       - Auth
   /auth/verify:
@@ -202,4 +374,9 @@ paths:
       summary: Verify User Email
       tags:
       - Auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

@@ -1,4 +1,4 @@
-package handler
+package response
 
 import (
 	"encoding/json"
@@ -64,4 +64,8 @@ func WriteValidationFailed(w http.ResponseWriter, message string, errs map[strin
 
 func WriteInternalServerError(w http.ResponseWriter) {
 	WriteError(w, http.StatusInternalServerError, "internal server error", nil)
+}
+
+func WriteTooManyRequests(w http.ResponseWriter, message string) {
+	WriteError(w, http.StatusTooManyRequests, message, nil)
 }

@@ -11,16 +11,20 @@ import (
 
 	"backend-skripsi/internal/app"
 	"backend-skripsi/internal/config"
+	"backend-skripsi/internal/repository"
+	"backend-skripsi/internal/security"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type Server struct {
-	logger   *slog.Logger
-	db       *gorm.DB
-	rdb      *redis.Client
-	handlers *handlers
+	logger      *slog.Logger
+	db          *gorm.DB
+	rdb         *redis.Client
+	handlers    *handlers
+	jwtProvider *security.JWTProvider
+	cacheRepo   repository.CacheRepository
 }
 
 func New(res *app.Resources) *Server {

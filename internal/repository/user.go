@@ -7,6 +7,7 @@ import (
 
 	"backend-skripsi/internal/entity"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
@@ -67,4 +68,37 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*entity
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+	var user entity.User
+
+	err := r.db.WithContext(ctx).
+		Select("id", "email", "full_name", "phone_number", "address", "province", "city", "postal_code").
+		Where("id = ?", id).
+		First(&user).
+		Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("repository.user.FindByID: %w", entity.ErrUserNotFound)
+		}
+		return nil, fmt.Errorf("repository.user.FindByID: %w", err)
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) UpdatePassword(ctx context.Context, email string, hashedPassword string) error {
+	err := r.db.WithContext(ctx).
+		Model(&entity.User{}).
+		Where("email = ?", email).
+		Update("password", hashedPassword).
+		Error
+
+	if err != nil {
+		return fmt.Errorf("repository.user.UpdatePassword: %w", err)
+	}
+
+	return nil
 }
